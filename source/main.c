@@ -62,16 +62,18 @@ void generateNewTile() {
 	}
 }
 
-void checkForWin() {
+s8 checkForWin() {
 	for (s8 i=0; i<4; i++) {
 		for (s8 j=0; j<4; j++) {
 			if (numGrid[i][j] >= 2048) {
 				printf("\x1b[%d;%dH", 30, 14);
 				printf("YOU WIN!!");
 				gameState = 2;
+				return 1;
 			}
 		}
 	}
+	return 0;
 }
 
 s8 moveIsPossible(s8 i, s8 j) {
@@ -90,12 +92,13 @@ s8 checkForLoss() {
 	for (s8 i=0; i<4; i++) {
 		for (s8 j=0; j<4; j++) {
 			if (moveIsPossible(i,j)) {
-				printf("\x1b[%d;%dH", 30, 13);
-				printf("Game Over");
-				gameState = 2;
+				return 0;
 			}
 		}
 	}
+	printf("\x1b[%d;%dH", 30, 13);
+	printf("Game Over");
+	gameState = 2;
 	return 1;
 }
 
@@ -207,6 +210,7 @@ void shiftUp() {
 	s8 movedATile = 0;
 	s8 canMerge = 1;
 	for (s8 j=0; j<4; j++) {
+		canMerge = 1;
 		for (s8 i=1; i<4; i++) {
 			if (numGrid[i][j] > 0) {
 				s8 movedThisTile = moveTile(i, j, 0, canMerge);
@@ -235,6 +239,7 @@ void shiftDown() {
 	s8 movedATile = 0;
 	s8 canMerge = 1;
 	for (s8 j=0; j<4; j++) {
+		canMerge = 1;
 		for (s8 i=2; i>-1; i--) {
 			if (numGrid[i][j] > 0) {
 				s8 movedThisTile = moveTile(i, j, 1, canMerge);
@@ -263,6 +268,7 @@ void shiftLeft() {
 	s8 movedATile = 0;
 	s8 canMerge = 1;
 	for (s8 i=0; i<4; i++) {
+		canMerge = 1;
 		for (s8 j=1; j<4; j++) {
 			if (numGrid[i][j] > 0) {
 				s8 movedThisTile = moveTile(i, j, 2, canMerge);
@@ -291,6 +297,7 @@ void shiftRight() {
 	s8 movedATile = 0;
 	s8 canMerge = 1;
 	for (s8 i=0; i<4; i++) {
+		canMerge = 1;
 		for (s8 j=2; j>-1; j--) {
 			if (numGrid[i][j] > 0) {
 				s8 movedThisTile = moveTile(i, j, 3, canMerge);
@@ -444,25 +451,37 @@ int main(int argc, char **argv) {
 				if ((pressedWii & (WPAD_BUTTON_RIGHT | WPAD_CLASSIC_BUTTON_UP)) || pressedGC & PAD_BUTTON_UP) {
 					copyNumGrid();
 					shiftUp();
+					if (checkForWin())
+						break;
+					checkForLoss();
 				}
 				else if ((pressedWii & (WPAD_BUTTON_LEFT | WPAD_CLASSIC_BUTTON_DOWN)) || pressedGC & PAD_BUTTON_DOWN) {
 					copyNumGrid();
 					shiftDown();
+					if (checkForWin())
+						break;
+					checkForLoss();
 				}
 				else if ((pressedWii & (WPAD_BUTTON_UP | WPAD_CLASSIC_BUTTON_LEFT)) || pressedGC & PAD_BUTTON_LEFT) {
 					copyNumGrid();
 					shiftLeft();
+					if (checkForWin())
+						break;
+					checkForLoss();
 				}
 				else if ((pressedWii & (WPAD_BUTTON_DOWN | WPAD_CLASSIC_BUTTON_RIGHT)) || pressedGC & PAD_BUTTON_RIGHT) {
 					copyNumGrid();
 					shiftRight();
+					if (checkForWin())
+						break;
+					checkForLoss();
 				}
-				if ((pressedWii & (WPAD_BUTTON_PLUS | WPAD_CLASSIC_BUTTON_PLUS)) || pressedGC & PAD_BUTTON_Y) {
+				else if ((pressedWii & (WPAD_BUTTON_PLUS | WPAD_CLASSIC_BUTTON_PLUS)) || pressedGC & PAD_BUTTON_Y) {
 					// initScreen();
 					// gameState = 0;
 					initNumGrid();
 				}
-				if ((pressedWii & (WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B)) || pressedGC & PAD_BUTTON_B) {
+				else if ((pressedWii & (WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B)) || pressedGC & PAD_BUTTON_B) {
 					restorePrevNumGrid();
 				}
 				break;
